@@ -3,13 +3,6 @@ import UserModel from "../models/userModel.js";
 import crypto from "crypto";
 import { generateToken } from "../lib/generateToken.js";
 
-const getCookieOptions = (maxAge) => ({
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    ...(maxAge && { maxAge })
-});
-
 export const airtableAuth = (req, res) => {
     try{
         const clientId = process.env.AIRTABLE_CLIENT_ID;
@@ -29,8 +22,8 @@ export const airtableAuth = (req, res) => {
 
         const state = crypto.randomBytes(16).toString("hex");
         
-        res.cookie('oauth_state', state, getCookieOptions(10 * 60 * 1000));
-        res.cookie('code_verifier', codeVerifier, getCookieOptions(10 * 60 * 1000));
+        res.cookie('oauth_state', state, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 600000 });
+        res.cookie('code_verifier', codeVerifier, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 600000 });
 
         const scope = 'data.records:read data.records:write schema.bases:read webhook:manage';
 
@@ -67,8 +60,8 @@ export const airtableCallback = async (req, res) => {
         return res.redirect(`${frontendUrl}/login?error=missing_verifier`);
     }
 
-    res.clearCookie('oauth_state', getCookieOptions());
-    res.clearCookie('code_verifier', getCookieOptions());
+    res.clearCookie('oauth_state');
+    res.clearCookie('code_verifier');
 
     if(error) {
         return res.redirect(`${frontendUrl}/login?error=${error}`);
@@ -116,7 +109,7 @@ export const airtableCallback = async (req, res) => {
         );
 
         const token = generateToken(newUser._id);
-        res.cookie('token', token, getCookieOptions(5 * 24 * 60 * 60 * 1000));
+        res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "None", maxAge: 5 * 24 * 60 * 60 * 1000 });
 
         res.redirect(`${frontendUrl}/auth/callback?auth=success`);
     }
@@ -141,7 +134,7 @@ export const checkAuth = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        res.clearCookie('token', getCookieOptions());
+        res.clearCookie('token');
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
         console.log('Error in logout:', error);
