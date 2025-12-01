@@ -3,6 +3,13 @@ import UserModel from "../models/userModel.js";
 import crypto from "crypto";
 import { generateToken } from "../lib/generateToken.js";
 
+const getCookieOptions = (maxAge) => ({
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    ...(maxAge && { maxAge })
+});
+
 export const airtableAuth = (req, res) => {
     try{
         const clientId = process.env.AIRTABLE_CLIENT_ID;
@@ -22,19 +29,8 @@ export const airtableAuth = (req, res) => {
 
         const state = crypto.randomBytes(16).toString("hex");
         
-       
-        res.cookie('oauth_state', state, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production' || process.env.BACKEND_URL?.startsWith('https'),
-            sameSite: 'lax',
-            maxAge: 10 * 60 * 1000 
-        });
-        res.cookie('code_verifier', codeVerifier, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production' || process.env.BACKEND_URL?.startsWith('https'),
-            sameSite: 'lax',
-            maxAge: 10 * 60 * 1000
-        });
+        res.cookie('oauth_state', state, getCookieOptions(10 * 60 * 1000));
+        res.cookie('code_verifier', codeVerifier, getCookieOptions(10 * 60 * 1000));
 
         const scope = 'data.records:read data.records:write schema.bases:read webhook:manage';
 
@@ -48,25 +44,21 @@ export const airtableAuth = (req, res) => {
         url.searchParams.set('scope', scope);
         url.searchParams.set('state', state);
 
-        const airtableAuthUrl = url.toString();
-
-        res.redirect(airtableAuthUrl);
+        res.redirect(url.toString());
     }
     catch(error){
         console.log("Error in airtableAuth:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
-
 }
 
-export const airtableCallback = async (req, res)  =>{
+export const airtableCallback = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL;
-    const {code, error, state} = req.query;
+    const { code, error, state } = req.query;
     
     const savedState = req.cookies.oauth_state;
     const codeVerifier = req.cookies.code_verifier;
     
-       
     if(!savedState || state !== savedState) {
         return res.redirect(`${frontendUrl}/login?error=invalid_state`);
     }
@@ -75,20 +67,18 @@ export const airtableCallback = async (req, res)  =>{
         return res.redirect(`${frontendUrl}/login?error=missing_verifier`);
     }
 
-    
-    res.clearCookie('oauth_state');
-    res.clearCookie('code_verifier');
+    res.clearCookie('oauth_state', getCookieOptions());
+    res.clearCookie('code_verifier', getCookieOptions());
 
-    if(error){
+    if(error) {
         return res.redirect(`${frontendUrl}/login?error=${error}`);
     }
 
-    if(!code){
+    if(!code) {
         return res.redirect(`${frontendUrl}/login?error=missing_code`);
     }
 
-    try{
-        
+    try {
         const authString = `${process.env.AIRTABLE_CLIENT_ID}:${process.env.AIRTABLE_CLIENT_SECRET}`;
         const header = Buffer.from(authString).toString('base64');
 
@@ -111,15 +101,13 @@ export const airtableCallback = async (req, res)  =>{
         const { access_token, refresh_token, expires_in } = response.data;
 
         const user = await axios.get('https://api.airtable.com/v0/meta/whoami', {
-                headers: { Authorization: `Bearer ${access_token}` },
+            headers: { Authorization: `Bearer ${access_token}` },
         });
 
-        const airtableUserId = user.data.id;
-
         const newUser = await UserModel.findOneAndUpdate(
-            { airtableUserId: airtableUserId },
+            { airtableUserId: user.data.id },
             {
-                airtableUserId: airtableUserId,
+                airtableUserId: user.data.id,
                 accessToken: access_token,
                 refreshToken: refresh_token,
                 tokenExpiry: new Date(Date.now() + expires_in * 1000)
@@ -128,16 +116,11 @@ export const airtableCallback = async (req, res)  =>{
         );
 
         const token = generateToken(newUser._id);
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production' || process.env.BACKEND_URL?.startsWith('https'),
-            sameSite: 'lax',
-            maxAge: 5 * 24 * 60 * 60 * 1000 
-        });
+        res.cookie('token', token, getCookieOptions(5 * 24 * 60 * 60 * 1000));
 
         res.redirect(`${frontendUrl}/auth/callback?auth=success`);
     }
-    catch(error){
+    catch(error) {
         console.log("Error in airtableCallback:", error);
         res.redirect(`${frontendUrl}/login?error=internal_error`);
     }
@@ -158,7 +141,7 @@ export const checkAuth = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        res.clearCookie('token');
+        res.clearCookie('token', getCookieOptions());
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
         console.log('Error in logout:', error);
