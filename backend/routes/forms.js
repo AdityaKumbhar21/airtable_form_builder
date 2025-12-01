@@ -5,11 +5,10 @@ import { createForm, getForm, getUserForms, deleteForm, submitForm } from "../co
 
 const formRouter = Router();
 
-formRouter.post("/createForm", airtableRefreshToken, isUserLoggedIn, createForm);
-formRouter.get("/forms", airtableRefreshToken, isUserLoggedIn, getUserForms);
-formRouter.get("/:formId", getForm);
-formRouter.delete("/:formId", airtableRefreshToken, isUserLoggedIn, deleteForm);
-formRouter.post("/:formId/submit", submitForm);
-
+formRouter.post("/create", airtableRefreshToken, isUserLoggedIn, createForm);
+formRouter.get("/list", airtableRefreshToken, isUserLoggedIn, getUserForms);
+formRouter.get("/view/:formId", getForm);
+formRouter.delete("/delete/:formId", airtableRefreshToken, isUserLoggedIn, deleteForm);
+formRouter.post("/submit/:formId", submitForm);
 
 export default formRouter;

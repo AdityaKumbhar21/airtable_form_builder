@@ -37,11 +37,11 @@ export const airtableAPI = {
 };
 
 export const formsAPI = {
-  create: (data) => api.post('/f/createForm', data),
-  list: () => api.get('/f/forms'),
-  get: (formId) => api.get(`/f/${formId}`),
-  delete: (formId) => api.delete(`/f/${formId}`),
-  submit: (formId, answers) => api.post(`/f/${formId}/submit`, { answers }),
+  create: (data) => api.post('/f/create', data),
+  list: () => api.get('/f/list'),
+  get: (formId) => api.get(`/f/view/${formId}`),
+  delete: (formId) => api.delete(`/f/delete/${formId}`),
+  submit: (formId, answers) => api.post(`/f/submit/${formId}`, { answers }),
 };
 
 export default api;
