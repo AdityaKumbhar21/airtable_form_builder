@@ -4,11 +4,11 @@ import UserModel from '../models/userModel.js';
 export const isUserLoggedIn = async (req, res, next) => {
     try{
         let token;
-        if(req.cookies?.token){
-            token = req.cookies.token;
-        }
-        else if(req.headers.authorization && req.headers.authorization.startsWith('Basic')){
+        if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
             token = req.headers.authorization.split(' ')[1];
+        }
+        else if(req.cookies?.token){
+            token = req.cookies.token;
         }
 
         if(!token){

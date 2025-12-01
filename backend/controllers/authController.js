@@ -109,9 +109,8 @@ export const airtableCallback = async (req, res) => {
         );
 
         const token = generateToken(newUser._id);
-        res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "None", maxAge: 5 * 24 * 60 * 60 * 1000 });
 
-        res.redirect(`${frontendUrl}/auth/callback?auth=success`);
+        res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
     }
     catch(error) {
         console.log("Error in airtableCallback:", error);

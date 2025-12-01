@@ -10,10 +10,16 @@ export function AuthProvider({ children }) {
   const checkAuth = async () => {
     try {
       setLoading(true);
+      const token = authAPI.getToken();
+      if (!token) {
+        setUser(null);
+        return null;
+      }
       const { data } = await authAPI.check();
       setUser(data.user);
       return data.user;
     } catch (error) {
+      localStorage.removeItem('token');
       setUser(null);
       return null;
     } finally {

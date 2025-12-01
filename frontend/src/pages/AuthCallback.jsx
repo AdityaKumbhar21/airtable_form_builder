@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { authAPI } from '@/lib/api';
 import { Spinner } from '@/components/ui';
 
 export default function AuthCallback() {
@@ -10,9 +11,10 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const auth = searchParams.get('auth');
+      const token = searchParams.get('token');
       
-      if (auth === 'success') {
+      if (token) {
+        authAPI.setToken(token);
         const user = await checkAuth();
         if (user) {
           navigate('/dashboard', { replace: true });
