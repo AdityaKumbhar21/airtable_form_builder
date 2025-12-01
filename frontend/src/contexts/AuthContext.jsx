@@ -9,10 +9,13 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
+      setLoading(true);
       const { data } = await authAPI.check();
       setUser(data.user);
+      return data.user;
     } catch (error) {
       setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }

@@ -13,8 +13,12 @@ export default function AuthCallback() {
       const auth = searchParams.get('auth');
       
       if (auth === 'success') {
-        await checkAuth();
-        navigate('/dashboard', { replace: true });
+        const user = await checkAuth();
+        if (user) {
+          navigate('/dashboard', { replace: true });
+        } else {
+          navigate('/login?error=auth_failed', { replace: true });
+        }
       } else {
         navigate('/login?error=auth_failed', { replace: true });
       }
