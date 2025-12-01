@@ -9,7 +9,6 @@ const api = axios.create({
   },
 });
 
-// Add token to all requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -18,7 +17,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Auth API
 export const authAPI = {
   login: () => {
     window.location.href = `${API_BASE_URL}/auth/airtable`;
@@ -32,14 +30,12 @@ export const authAPI = {
   getToken: () => localStorage.getItem('token'),
 };
 
-// Airtable API
 export const airtableAPI = {
   getBases: () => api.get('/api/bases'),
   getTables: (baseId) => api.get(`/api/tables/${baseId}`),
   getFields: (baseId, tableId) => api.get(`/api/fields/${tableId}?baseId=${baseId}`),
 };
 
-// Forms API
 export const formsAPI = {
   create: (data) => api.post('/f/createForm', data),
   list: () => api.get('/f/forms'),

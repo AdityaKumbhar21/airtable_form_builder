@@ -38,24 +38,20 @@ export default function FormBuilder() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Data states
   const [bases, setBases] = useState([]);
   const [tables, setTables] = useState([]);
   const [fields, setFields] = useState([]);
 
-  // Form states
   const [formTitle, setFormTitle] = useState('');
   const [selectedBase, setSelectedBase] = useState('');
   const [selectedTable, setSelectedTable] = useState('');
   const [selectedTableName, setSelectedTableName] = useState('');
   const [selectedFields, setSelectedFields] = useState([]);
 
-  // Fetch bases on mount
   useEffect(() => {
     fetchBases();
   }, []);
 
-  // Fetch tables when base changes
   useEffect(() => {
     if (selectedBase) {
       fetchTables();
@@ -66,7 +62,6 @@ export default function FormBuilder() {
     }
   }, [selectedBase]);
 
-  // Fetch fields when table changes
   useEffect(() => {
     if (selectedBase && selectedTable) {
       fetchFields();
@@ -153,13 +148,13 @@ export default function FormBuilder() {
     try {
       setSubmitting(true);
       const questions = selectedFields.map((f) => ({
-        questionKey: f.questionKey,
+        questionKey: f.questionKey || f.name,
         fieldId: f.id,
-        questionLabel: f.questionLabel,
-        questionType: f.type,
-        questionPlaceholder: f.questionPlaceholder,
-        isRequired: f.isRequired,
-        options: f.options,
+        label: f.questionLabel || f.name,
+        type: f.type,
+        required: f.isRequired || false,
+        originalFieldName: f.name,
+        options: f.options?.choices?.map(c => c.name) || [],
       }));
 
       await formsAPI.create({

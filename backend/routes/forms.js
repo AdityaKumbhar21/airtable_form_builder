@@ -5,7 +5,6 @@ import { createForm, getForm, getUserForms, deleteForm, submitForm } from "../co
 
 const formRouter = Router();
 
-
 formRouter.post("/createForm", airtableRefreshToken, isUserLoggedIn, createForm);
 formRouter.get("/forms", airtableRefreshToken, isUserLoggedIn, getUserForms);
 formRouter.get("/:formId", getForm);

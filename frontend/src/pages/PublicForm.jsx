@@ -36,7 +36,6 @@ export default function PublicForm() {
       const { data } = await formsAPI.get(formId);
       setForm(data.form);
 
-      // Initialize answers with empty values
       const initialAnswers = {};
       (data.form?.questions || []).forEach((q) => {
         if (q.questionType === 'checkbox') {
@@ -58,7 +57,6 @@ export default function PublicForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     const missingRequired = form.questions
       .filter((q) => q.isRequired)
       .filter((q) => {

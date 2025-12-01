@@ -19,7 +19,6 @@ export const airtableRefreshToken = async (req, res, next) => {
     }
 
     try{
-        // Create Basic auth header with client credentials
         const authString = `${process.env.AIRTABLE_CLIENT_ID}:${process.env.AIRTABLE_CLIENT_SECRET}`;
         const authHeader = Buffer.from(authString).toString('base64');
 

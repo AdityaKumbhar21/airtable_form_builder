@@ -51,12 +51,10 @@ export const getFields = async (req, res) => {
 
     console.log('Fetching fields for baseId:', baseId, 'tableId:', tableId);
     
-    // Fetch all tables for the base and find the matching one
     const response = await axios.get(`https://api.airtable.com/v0/meta/bases/${baseId}/tables`, {
       headers: { Authorization: `Bearer ${req.user.accessToken}` },
     });
 
-    // Find the table by ID
     const table = response.data.tables.find(t => t.id === tableId);
     
     if (!table) {

@@ -81,7 +81,6 @@ export const deleteForm = async (req, res) => {
       return res.status(404).json({ message: "Form not found" });
     }
 
-    // Delete webhook from Airtable if it exists
     if (form.airtableWebhookId) {
       try {
         await axios.delete(
