@@ -38,9 +38,9 @@ export default function PublicForm() {
 
       const initialAnswers = {};
       (data.form?.questions || []).forEach((q) => {
-        if (q.questionType === 'checkbox') {
+        if (q.type === 'checkbox') {
           initialAnswers[q.questionKey] = false;
-        } else if (q.questionType === 'multipleSelects') {
+        } else if (q.type === 'multipleSelects') {
           initialAnswers[q.questionKey] = [];
         } else {
           initialAnswers[q.questionKey] = '';
@@ -58,7 +58,7 @@ export default function PublicForm() {
     e.preventDefault();
 
     const missingRequired = form.questions
-      .filter((q) => q.isRequired)
+      .filter((q) => q.required)
       .filter((q) => {
         const value = answers[q.questionKey];
         if (Array.isArray(value)) return value.length === 0;
@@ -67,7 +67,7 @@ export default function PublicForm() {
       });
 
     if (missingRequired.length > 0) {
-      toast.error(`Please fill in: ${missingRequired.map((q) => q.questionLabel).join(', ')}`);
+      toast.error(`Please fill in: ${missingRequired.map((q) => q.label).join(', ')}`);
       return;
     }
 
@@ -88,16 +88,15 @@ export default function PublicForm() {
   };
 
   const renderField = (question) => {
-    const { questionKey, questionLabel, questionType, questionPlaceholder, isRequired, options } =
-      question;
+    const { questionKey, label, type, options } = question;
 
-    switch (questionType) {
+    switch (type) {
       case 'multilineText':
         return (
           <Textarea
             value={answers[questionKey] || ''}
             onChange={(e) => updateAnswer(questionKey, e.target.value)}
-            placeholder={questionPlaceholder}
+            placeholder={`Enter ${label.toLowerCase()}...`}
             className="mt-2"
           />
         );
@@ -110,9 +109,9 @@ export default function PublicForm() {
             className="mt-2"
           >
             <option value="">Select an option...</option>
-            {options?.choices?.map((choice) => (
-              <option key={choice.id || choice.name} value={choice.name}>
-                {choice.name}
+            {(options || []).map((choice, idx) => (
+              <option key={idx} value={choice}>
+                {choice}
               </option>
             ))}
           </Select>
@@ -121,20 +120,20 @@ export default function PublicForm() {
       case 'multipleSelects':
         return (
           <div className="mt-2 space-y-2">
-            {options?.choices?.map((choice) => (
-              <label key={choice.id || choice.name} className="flex items-center gap-2 cursor-pointer">
+            {(options || []).map((choice, idx) => (
+              <label key={idx} className="flex items-center gap-2 cursor-pointer">
                 <Checkbox
-                  checked={(answers[questionKey] || []).includes(choice.name)}
+                  checked={(answers[questionKey] || []).includes(choice)}
                   onChange={(e) => {
                     const current = answers[questionKey] || [];
                     if (e.target.checked) {
-                      updateAnswer(questionKey, [...current, choice.name]);
+                      updateAnswer(questionKey, [...current, choice]);
                     } else {
-                      updateAnswer(questionKey, current.filter((v) => v !== choice.name));
+                      updateAnswer(questionKey, current.filter((v) => v !== choice));
                     }
                   }}
                 />
-                <span className="text-sm">{choice.name}</span>
+                <span className="text-sm">{choice}</span>
               </label>
             ))}
           </div>
@@ -147,7 +146,7 @@ export default function PublicForm() {
               checked={answers[questionKey] || false}
               onChange={(e) => updateAnswer(questionKey, e.target.checked)}
             />
-            <span className="text-sm">{questionPlaceholder || 'Yes'}</span>
+            <span className="text-sm">Yes</span>
           </label>
         );
 
@@ -157,7 +156,7 @@ export default function PublicForm() {
             type="email"
             value={answers[questionKey] || ''}
             onChange={(e) => updateAnswer(questionKey, e.target.value)}
-            placeholder={questionPlaceholder || 'email@example.com'}
+            placeholder="email@example.com"
             className="mt-2"
           />
         );
@@ -168,7 +167,7 @@ export default function PublicForm() {
             type="url"
             value={answers[questionKey] || ''}
             onChange={(e) => updateAnswer(questionKey, e.target.value)}
-            placeholder={questionPlaceholder || 'https://example.com'}
+            placeholder="https://example.com"
             className="mt-2"
           />
         );
@@ -179,7 +178,7 @@ export default function PublicForm() {
             type="tel"
             value={answers[questionKey] || ''}
             onChange={(e) => updateAnswer(questionKey, e.target.value)}
-            placeholder={questionPlaceholder || '+1 (555) 000-0000'}
+            placeholder="+1 (555) 000-0000"
             className="mt-2"
           />
         );
@@ -200,7 +199,7 @@ export default function PublicForm() {
             type="text"
             value={answers[questionKey] || ''}
             onChange={(e) => updateAnswer(questionKey, e.target.value)}
-            placeholder={questionPlaceholder}
+            placeholder={`Enter ${label.toLowerCase()}...`}
             className="mt-2"
           />
         );
@@ -297,8 +296,8 @@ export default function PublicForm() {
               {form.questions.map((question, index) => (
                 <div key={question.questionKey || index} className="space-y-1">
                   <Label className="text-base">
-                    {question.questionLabel}
-                    {question.isRequired && (
+                    {question.label}
+                    {question.required && (
                       <span className="text-destructive ml-1">*</span>
                     )}
                   </Label>
